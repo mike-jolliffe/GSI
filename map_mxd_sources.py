@@ -18,14 +18,8 @@ def main(root):
         getter.get_source_paths(mxd)
         print 'finishing mxd # ' + str(mxd_num) + " of " + str(tot_mxds)
         mxd_num += 1
-    print getter.source_paths
+        #print getter.source_paths
     exit()
-
-    # TODO add mxd filepath to source_paths variable (currently just layer object)
-    # TODO only grab source files that are .shp
-        # for path in src_paths:
-        #     if path[1].endswith('.shp'):
-        #         new_src = set_source_path(path)
 
     # TODO create a PathBuilder class that does the following
         # - Gets the depth of the current .mxd from source_figures

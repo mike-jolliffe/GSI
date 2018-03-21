@@ -42,15 +42,19 @@ class PathGetter(object):
                         outfile.write("Layer: " + lyr.name + " -- Source: " + lyr.dataSource + "  ------  [ Broken?  " + str(lyr.isBroken) + " ]" + "\n")
 
     def get_source_paths(self, filepath):
-        """Returns a list of layer path and layer sources for a given MapDocument file
+        """Returns a list of layers, layer paths, and .shp layer sources for a given MapDocument file
         :type filepath: str
-        :rtype: List[tuple(<map layer>, str)]
+        :rtype: List[tuple(<map layer>, str, str)]
         """
         mxd = arcpy.mapping.MapDocument(filepath)
         lyr_sources = []
+        # For all layers in a given .mxd
         for lyr in arcpy.mapping.ListLayers(mxd):
-            if lyr.supports("DATASOURCE"):
-                lyr_sources.append((lyr, lyr.dataSource))
+            # If the layer has a dataSource property and its datasource is a shapefile
+            if lyr.supports("DATASOURCE") and lyr.dataSource.endswith('.shp'):
+                # Store the layer object, its filepath, and its source filepath
+                lyr_sources.append((lyr, filepath, lyr.dataSource))
+        print lyr_sources
         self.source_paths.extend(lyr_sources)
 
     def split_path(self, fpath):
