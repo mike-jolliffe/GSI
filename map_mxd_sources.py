@@ -1,6 +1,16 @@
 from path_getter import PathGetter
+from path_builder import PathBuilder
+
 
 def main(root):
+    current_paths = map_current_paths(root)
+    build_new_paths(current_paths)
+
+def map_current_paths(root):
+    """Maps all current map paths, layer paths, and data source paths
+    :type root: str
+    :rtype: List[tuple(<map layer>, str, str)]
+    """
     # Instantiate new Getter object
     getter = PathGetter(root)
     # Get all mxds in root
@@ -12,58 +22,33 @@ def main(root):
     print 'Getting current source paths...'
     mxd_num = 1
     for mxd in mxds:
-        # Split the filepath of the mxd into a list of directories and a filename
-        split_target = getter.split_path(mxd)
         # Get the source data paths for each mxd
         getter.get_source_paths(mxd)
         print 'finishing mxd # ' + str(mxd_num) + " of " + str(tot_mxds)
         mxd_num += 1
         #print getter.source_paths
+    return getter.source_paths
+
+def build_new_paths(current_paths):
+    """Given current paths, builds new paths to reflect modified directory structure
+    :type current_paths: List[tuple(<map layer>, str, str)]
+    :rtype: None
+    """
+    # Instantiate new PathBuilder object that will consume getter.source_paths list
+    builder = PathBuilder()
+    for fpath_tuple in current_paths:
+        # Split the filepath of the source into a list of directories and a filename
+        split_target = builder.split_path(fpath_tuple[1])
+        target_depth = builder.get_depth(split_target)
+        print target_depth
+        path_dict = builder.get_path_variables(split_target[split_target.index('Source_Figures'): ], target_depth)
+        print path_dict
     exit()
 
-    # TODO create a PathBuilder class that does the following
-        # - Gets the depth of the current .mxd from source_figures
-        # - Migrates source data from Z: into the _Data_Library
-        # - Parses current path into variables for use in building the new path
-        # - Taking depth into account, creates new filepath for source data
-
-
-# def set_source_path(path):
-#     """Given drive and paths, creates appropriate filepath for new location of
-#     source data
-#     :type path: tuple(string, string)
-#     :rtype: str
-#     """
-#     # Create list of folders and filename from source path
-#     split_src = split_path(path[1])
-#     # Get drive name from path
-#     drive = split_src[0]
-#     # Get shape name from path
-#     shape_name = split_src[-1]
-#     print (split_src, drive, shape_name)
-#     exit()
-
-    # # If drive is Z:
-    # if drive == 'Z':
-    #     # Map to _Data_Library
-    #     return 'PDX\GIS_Files\_Data_Library\\' + shape_name
-    # else:
-    #     # Determine number of folders between Source_Figures and .mxd
-    #     try:
-    #         depth = len(split_target[split_target.index('Source_Figures'):])
-    #         lyr = arcpy.mapping.ListLayers(path[0])
-    #         if depth == 4:
-    #             pass
-    #             # Get folder names
-    #             # Build path PDX/GIS_Files/<project_name>/Spatial/<task_name>/<shp_name>
-    #         elif depth == 3:
-    #             pass
-    #             # PDX/GIS_Files/Spatial/<task_name>/<shp_name>
-    #     except:
-    #         # Probably errored b/c .mxd not in Source_Figures, came from elsewhere
-    #         print "File not in source Figures: " + mxd
 
 
 
 if __name__ == '__main__':
-    main(r'\\PDX\GIS_Files\0302_Baxter')
+    # main(r'\\PDX\GIS_Files\0302_Baxter')
+    #main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Arlington_Landfills\2016_Annual_Report')
+    main(r'\\PDX\GIS_Files\0730_PPS\Source_Figures\001_GW_Protectiveness')

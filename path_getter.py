@@ -6,10 +6,14 @@ sys.path.insert(0, r'C:\Program Files (x86)\ArcGIS\Desktop10.3\bin')
 sys.path.insert(0, r'C:\Python27\ArcGIS10.3\Lib\site-packages')
 import arcpy
 
+
 class PathGetter(object):
     def __init__(self, root):
+        # Root directory within which to perform all link fixing
         self.root = root
+        # Paths for all mxds within root
         self.map_paths = []
+        # Layers, map paths, and source paths
         self.source_paths = []
 
     def find_files(self, ftype):
@@ -56,11 +60,3 @@ class PathGetter(object):
                 lyr_sources.append((lyr, filepath, lyr.dataSource))
         print lyr_sources
         self.source_paths.extend(lyr_sources)
-
-    def split_path(self, fpath):
-        """Splits filepath into list of directories and file name
-        :type fpath: str
-        :rtype List[str]
-        """
-        dirs_file = fpath.split('\\')
-        return dirs_file
