@@ -9,18 +9,6 @@ import arcpy
 
 class PathBuilder(object):
 
-    def get_depth(self, split_fpath):
-        """Returns the depth of the file below the Source_Figures directory
-        :type split_fpath: List[str]
-        :rtype: int
-        """
-        try:
-            # Find depth of file below Source_Figures folder
-            return len(split_fpath[split_fpath.index('GIS_Files'):])
-        except:
-            # If Source_Figures isn't in path
-            return -1
-
     def split_path(self, fpath):
         """Splits filepath into list of directories and file name
         :type fpath: str
@@ -29,25 +17,31 @@ class PathBuilder(object):
         dirs_file = fpath.split('\\')
         return dirs_file
 
-    def get_path_variables(self, split_fpath, depth):
+    def get_path_variables(self, split_fpath):
         """Returns the drive location of a source
         :type split_path: List[str]
         :type depth: int
         :rtype: dict
         """
         # Create dict structure for all source paths. All paths will fit in this
-        dir_dict = {'Root': None, 'Project': None, 'Data': 'Data', 'Area': None, 'Spatial': 'Spatial', 'Task': None, 'fname': None}
+        dir_dict = {'Root': None, 'Project': None, 'fname': None}
         dir_dict['fname'] = split_fpath[-1]
         dir_dict['Root'] = split_fpath[0]
         dir_dict['Project'] = split_fpath[1]
-        # If an 'area' is present
-        if depth == 6:
-            # Map to dict accordingly
-            dir_dict['Area'] = split_fpath[3]
-            dir_dict['Task'] = split_fpath[4]
-        elif depth == 5:
-            dir_dict['Task'] = split_fpath[3]
         return dir_dict
+
+    def match_new_src(self, project_name, source_fname):
+        """Returns filepath of source file in new path that matches source_fname
+        :type project_name: str
+        :type source_fname: str
+        :rtype: str
+        """
+        search_path = '\\\\PDX\GIS_Files' + '\\' + project_name + '\\Data'
+        for dirpath, subdirs, files in os.walk(search_path):
+            for file in files:
+                if file == source_fname:
+                    return os.path.join(dirpath, file)
+        return 'Not found in current drive: ' + source_fname
 
     def build(self, path_dict, source_fname, source_task):
         """Builds filepath for the new source data location
@@ -56,17 +50,7 @@ class PathBuilder(object):
         :type source_task: str
         :rtype: str
         """
-        print path_dict
-        # Declare base path that is same for all files
-        base_path = '\\PDX\GIS_Files' + '\\' + path_dict['Project'] + '\\Data'
-        # If the project has a work area in the filepath, add it
-        if not path_dict['Area'] is None:
-            base_path = base_path + '\\' + path_dict['Area'] + '\\Spatial'
-        # If the source path had a Task name, add it
-        if not source_task == 'Vector':
-            base_path = base_path + '\\' + source_task
-        base_path = base_path + '\\' + source_fname
-        return base_path
+
 
 
 

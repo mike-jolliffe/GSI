@@ -42,28 +42,26 @@ def build_new_paths(current_paths, num_layers):
     for fpath_tuple in current_paths:
         # Split the filepath of the map into a list of directories and a filename
         split_target = builder.split_path(fpath_tuple[1])
-        split_src = builder.split_path(fpath_tuple[2])
-        source_fname = split_src[-1]
-        source_task = split_src[-2]
-        # Get directory depth
-        target_depth = builder.get_depth(split_target)
+        source_fname = builder.split_path(fpath_tuple[2])[-1]
+
         # Create dict for building new path
-        path_dict = builder.get_path_variables(split_target[split_target.index('GIS_Files'): ], target_depth)
+        path_dict = builder.get_path_variables(split_target[split_target.index('GIS_Files'): ])
         if fpath_tuple[2].startswith('Z'):
-            new_path = 'r\\PDX\GIS_Files\_Data_Library' + '\\' + source_fname
+            new_path = '\\\\PDX\GIS_Files\_Data_Library' + '\\' + source_fname
         else:
-            new_path = builder.build(path_dict, source_fname, source_task)
-        print 'new path ' + new_path
-        print 'old path ' + fpath_tuple[2]
+            new_path = builder.match_new_src(path_dict['Project'], source_fname)
+        print new_path
+
+
 
 #TODO fix 'vector' being treated as a 'Task' (e.g., in Ross Tract)
 #TODO replace paths on a dummy area of the drive
 #TODO keep track of all layers/mxds/source filepaths where links were not successfully repaired
-# TODO keep track of total number of layers repaired / not repaired
-# TODO test that links are repaired using get_link_status in path_getter module
+#TODO keep track of total number of layers repaired / not repaired
+#TODO test that links are repaired using get_link_status in path_getter module
 
 if __name__ == '__main__':
     # main(r'\\PDX\GIS_Files\0302_Baxter')
-    # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Ross_Tract')
+    main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Ross_Tract')
     # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Arlington_Landfills\2016_Annual_Report')
-    main(r'\\PDX\GIS_Files\0730_PPS\Source_Figures')
+    # main(r'\\PDX\GIS_Files\0730_PPS\Source_Figures')
