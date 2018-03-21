@@ -49,24 +49,25 @@ class PathBuilder(object):
             dir_dict['Task'] = split_fpath[3]
         return dir_dict
 
-    def build(self, path_dict, source_fname):
+    def build(self, path_dict, source_fname, source_task):
         """Builds filepath for the new source data location
         :type path_dict: dict
         :type source_fname: str
+        :type source_task: str
         :rtype: str
         """
         print path_dict
         # Declare base path that is same for all files
         base_path = '\\PDX\GIS_Files' + '\\' + path_dict['Project'] + '\\Data'
+        # If the project has a work area in the filepath, add it
         if not path_dict['Area'] is None:
-            base_path = base_path + '\\' + path_dict['Area']
-        base_path = base_path + '\\Spatial\\' + path_dict['Task']
+            base_path = base_path + '\\' + path_dict['Area'] + '\\Spatial'
+        # If the source path had a Task name, add it
+        if not source_task == 'Vector':
+            base_path = base_path + '\\' + source_task
         base_path = base_path + '\\' + source_fname
         return base_path
 
-    # TODO create a PathBuilder class that does the following
-        # - Build path for Z drive to _Data_Library
-        # -
 
 
 # def set_source_path(path):
