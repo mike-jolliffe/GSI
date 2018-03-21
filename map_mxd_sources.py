@@ -1,88 +1,53 @@
-import os
-import sys
-# Add arcpy and dependencies to system path
-sys.path.insert(0, r'C:\Program Files (x86)\ArcGIS\Desktop10.3\arcpy')
-sys.path.insert(0, r'C:\Program Files (x86)\ArcGIS\Desktop10.3\bin')
-sys.path.insert(0, r'C:\Python27\ArcGIS10.3\Lib\site-packages')
-import arcpy
-
+from path_getter import PathGetter
 
 def main(root):
+    # Instantiate new Getter object
+    getter = PathGetter(root)
     # Get all mxds in root
-    mxds = find_files(root, '.mxd')
+    print 'finding all .mxd files...'
+    getter.find_files('.mxd')
+    mxds = getter.map_paths
+    tot_mxds = len(mxds)
+    print str(tot_mxds) + ' mxd files found.'
+    print 'Getting current source paths...'
+    mxd_num = 1
     for mxd in mxds:
         # Split the filepath of the mxd into a list of directories and a filename
-        split_target = split_path(mxd)
+        split_target = getter.split_path(mxd)
         # Get the source data paths for each mxd
-        src_paths = get_source_paths(mxd)
-        # Split the filepath into a list
-        for path in src_paths:
-            if path[1].endswith('.shp'):
-                new_src = set_source_path(path)
-
-def find_files(root, ftype):
-    """Given a path to root directory, recursively finds all files of given extension
-    within root
-    :type root: str
-    :type ftype: str
-    :rtype: List[str]
-    """
-    # Container for ftype files by full path
-    f = []
-    # Recursively search from root, grabbing all files of given ftype
-    for dirpath, subdirs, files in os.walk(root):
-        for file in files:
-            if file.endswith(ftype):
-                f.append(os.path.join(dirpath, file))
-    return f
-
-def get_link_status(f):
-    """Checks list of mxds to see if layer source links are broken, writes results to file
-    :type f: List[str]
-    :rtype: None
-    """
-    # Get current data source and broken status for all layers
-    with open("Broken_links.txt", "w") as outfile:
-        for filepath in f:
-            mxd = arcpy.mapping.MapDocument(filepath)
-            for lyr in arcpy.mapping.ListLayers(mxd):
-                if lyr.supports("DATASOURCE"):
-                    outfile.write("Layer: " + lyr.name + " -- Source: " + lyr.dataSource + "  ------  [ Broken?  " + str(lyr.isBroken) + " ]" + "\n")
-
-def get_source_paths(filepath):
-    """Returns a list of layer path and layer sources for a given MapDocument file
-    :type filepath: str
-    :rtype: List[tuple]
-    """
-    mxd = arcpy.mapping.MapDocument(filepath)
-    lyr_sources = []
-    for lyr in arcpy.mapping.ListLayers(mxd):
-        if lyr.supports("DATASOURCE"):
-            lyr_sources.append((lyr, lyr.dataSource))
-    return lyr_sources
-
-def split_path(fpath):
-    """Splits filepath into list of directories and file name
-    :type fpath: str
-    :rtype List[str]
-    """
-    dirs_file = fpath.split('\\')
-    return dirs_file
-
-def set_source_path(path):
-    """Given drive and paths, creates appropriate filepath for new location of
-    source data
-    :type path: tuple(string, string)
-    :rtype: str
-    """
-    # Create list of folders and filename from source path
-    split_src = split_path(path[1])
-    # Get drive name from path
-    drive = split_src[0]
-    # Get shape name from path
-    shape_name = split_src[-1]
-    print (split_src, drive, shape_name)
+        getter.get_source_paths(mxd)
+        print 'finishing mxd # ' + str(mxd_num) + " of " + str(tot_mxds)
+        mxd_num += 1
+    print getter.source_paths
     exit()
+
+    # TODO add mxd filepath to source_paths variable (currently just layer object)
+    # TODO only grab source files that are .shp
+        # for path in src_paths:
+        #     if path[1].endswith('.shp'):
+        #         new_src = set_source_path(path)
+
+    # TODO create a PathBuilder class that does the following
+        # - Gets the depth of the current .mxd from source_figures
+        # - Migrates source data from Z: into the _Data_Library
+        # - Parses current path into variables for use in building the new path
+        # - Taking depth into account, creates new filepath for source data
+
+
+# def set_source_path(path):
+#     """Given drive and paths, creates appropriate filepath for new location of
+#     source data
+#     :type path: tuple(string, string)
+#     :rtype: str
+#     """
+#     # Create list of folders and filename from source path
+#     split_src = split_path(path[1])
+#     # Get drive name from path
+#     drive = split_src[0]
+#     # Get shape name from path
+#     shape_name = split_src[-1]
+#     print (split_src, drive, shape_name)
+#     exit()
 
     # # If drive is Z:
     # if drive == 'Z':
