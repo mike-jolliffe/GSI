@@ -16,7 +16,7 @@ class PathBuilder(object):
         """
         try:
             # Find depth of file below Source_Figures folder
-            return len(split_fpath[split_fpath.index('Source_Figures'):])
+            return len(split_fpath[split_fpath.index('GIS_Files'):])
         except:
             # If Source_Figures isn't in path
             return -1
@@ -35,21 +35,38 @@ class PathBuilder(object):
         :type depth: int
         :rtype: dict
         """
-        # Create dict structure for all source paths
-        dir_dict = {0: None, 1: None, 2: None, 'fname': None}
+        # Create dict structure for all source paths. All paths will fit in this
+        dir_dict = {'Root': None, 'Project': None, 'Data': 'Data', 'Area': None, 'Spatial': 'Spatial', 'Task': None, 'fname': None}
         dir_dict['fname'] = split_fpath[-1]
-        for level in range(depth - 1):
-            dir_dict[level] = split_fpath[level]
+        dir_dict['Root'] = split_fpath[0]
+        dir_dict['Project'] = split_fpath[1]
+        # If an 'area' is present
+        if depth == 6:
+            # Map to dict accordingly
+            dir_dict['Area'] = split_fpath[3]
+            dir_dict['Task'] = split_fpath[4]
+        elif depth == 5:
+            dir_dict['Task'] = split_fpath[3]
         return dir_dict
 
-
-
+    def build(self, path_dict, source_fname):
+        """Builds filepath for the new source data location
+        :type path_dict: dict
+        :type source_fname: str
+        :rtype: str
+        """
+        print path_dict
+        # Declare base path that is same for all files
+        base_path = '\\PDX\GIS_Files' + '\\' + path_dict['Project'] + '\\Data'
+        if not path_dict['Area'] is None:
+            base_path = base_path + '\\' + path_dict['Area']
+        base_path = base_path + '\\Spatial\\' + path_dict['Task']
+        base_path = base_path + '\\' + source_fname
+        return base_path
 
     # TODO create a PathBuilder class that does the following
-        # - Store folders for current source in dictionary
         # - Build path for Z drive to _Data_Library
-
-        # - Taking depth into account, creates new filepath for source data
+        # -
 
 
 # def set_source_path(path):

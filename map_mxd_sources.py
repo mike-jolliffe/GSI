@@ -37,12 +37,18 @@ def build_new_paths(current_paths):
     # Instantiate new PathBuilder object that will consume getter.source_paths list
     builder = PathBuilder()
     for fpath_tuple in current_paths:
-        # Split the filepath of the source into a list of directories and a filename
+        # Split the filepath of the map into a list of directories and a filename
         split_target = builder.split_path(fpath_tuple[1])
+        source_fname = builder.split_path(fpath_tuple[2])[-1]
+        # Get directory depth
         target_depth = builder.get_depth(split_target)
-        print target_depth
-        path_dict = builder.get_path_variables(split_target[split_target.index('Source_Figures'): ], target_depth)
-        print path_dict
+        # Create dict for building new path
+        path_dict = builder.get_path_variables(split_target[split_target.index('GIS_Files'): ], target_depth)
+        if fpath_tuple[2].startswith('Z'):
+            new_path = 'r\\PDX\GIS_Files\_Data_Library'
+        else:
+            new_path = builder.build(path_dict, source_fname)
+            print new_path
     exit()
 
 
@@ -50,5 +56,5 @@ def build_new_paths(current_paths):
 
 if __name__ == '__main__':
     # main(r'\\PDX\GIS_Files\0302_Baxter')
-    #main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Arlington_Landfills\2016_Annual_Report')
-    main(r'\\PDX\GIS_Files\0730_PPS\Source_Figures\001_GW_Protectiveness')
+    main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Arlington_Landfills\2016_Annual_Report')
+    #main(r'\\PDX\GIS_Files\0730_PPS\Source_Figures\001_GW_Protectiveness')
