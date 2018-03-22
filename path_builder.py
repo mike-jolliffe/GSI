@@ -40,16 +40,26 @@ class PathBuilder(object):
         for dirpath, subdirs, files in os.walk(search_path):
             for file in files:
                 if file == source_fname:
-                    return os.path.join(dirpath, file)
+                    return dirpath
         return 'Not found in current drive: ' + source_fname
 
-    def build(self, path_dict, source_fname, source_task):
-        """Builds filepath for the new source data location
-        :type path_dict: dict
-        :type source_fname: str
-        :type source_task: str
+    def build(self, map_layer, old_workspace, new_workspace):
+        """Fixes filepath for given map layer
+        :type map_layer: <map layer>
+        :type new_path: str
         :rtype: str
         """
+        print type(map_layer)
+        name = map_layer.name
+        try:
+            #print "Input path: " + old_path
+            #print "Updated path: " + new_path
+            print 'current data path ' + map_layer.dataSource
+            map_layer.findAndReplaceWorkspacePath(old_workspace, new_workspace, False)
+            print 'successfully modified path ' + map_layer.dataSource
+        except:
+            # If you get an error, make sure all drives are mapped
+            raise
 
 
 

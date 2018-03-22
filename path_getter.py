@@ -15,6 +15,8 @@ class PathGetter(object):
         self.map_paths = []
         # Layers, map paths, and source paths
         self.source_paths = []
+        # Total number of layers
+        self.num_layers = 0
 
     def find_files(self, ftype):
         """Given a path to root directory, recursively finds all files of given extension
@@ -46,17 +48,19 @@ class PathGetter(object):
                         outfile.write("Layer: " + lyr.name + " -- Source: " + lyr.dataSource + "  ------  [ Broken?  " + str(lyr.isBroken) + " ]" + "\n")
 
     def get_source_paths(self, filepath):
-        """Returns a list of layers, layer paths, and .shp layer sources for a given MapDocument file
+        """Returns a dictionary. Key is current mxd filepath, vals are tuples of
+        map layer objects and their source paths
         :type filepath: str
-        :rtype: List[tuple(<map layer>, str, str)]
+        :rtype: None
         """
         mxd = arcpy.mapping.MapDocument(filepath)
-        lyr_sources = []
+        lyr_sources = {}
         # For all layers in a given .mxd
         for lyr in arcpy.mapping.ListLayers(mxd):
+            self.num_layers += 1
             # If the layer has a dataSource property and its datasource is a shapefile
             if lyr.supports("DATASOURCE") and lyr.dataSource.endswith('.shp'):
+                #print lyr.dataSource 
                 # Store the layer object, its filepath, and its source filepath
-                lyr_sources.append((lyr, filepath, lyr.dataSource))
-        print lyr_sources
-        self.source_paths.extend(lyr_sources)
+                lyr_sources.setdefault(filepath, []).append((lyr, lyr.dataSource))
+        self.source_paths.append(lyr_sources)
