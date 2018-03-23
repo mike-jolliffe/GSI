@@ -6,13 +6,16 @@ from path_builder import PathBuilder
 def main(root):
     # Get all current map and data source paths, number of layers requiring mods
     current_paths, num_layers = map_current_paths(root)
+    print 'Repairing links for ' + num_layers + ' layers...'
     # For each map
     for map_dict in current_paths:
         # Replace old datasource locations with new ones
         build_new_paths(map_dict, num_layers)
     # Check that replacement worked
-    current_paths, num_layers = map_current_paths(root)
-    print current_paths
+    del current_paths
+    del num_layers
+    #current_paths, num_layers = map_current_paths(root)
+    #print current_paths
 
 def map_current_paths(root):
     """Generates dictionary of all current map paths, layer paths, and data
@@ -49,11 +52,12 @@ def build_new_paths(map_dict, num_layers):
     :rtype: None
     """
     # Instantiate new PathBuilder object that will consume getter.source_paths list
-    print 'Repairing links for ' + num_layers + ' layers...'
     builder = PathBuilder()
     # For each map
     for mxd_path, lyr_sources_list in map_dict.items():
-        print "rebuilding links for " + mxd_path
+        print '........MXD........'
+        print 'rebuilding links for ' + mxd_path
+        print '...................'
         # Grab the map object to be modified
         mxd = lyr_sources_list[0][0]
         # Split the map filepath into list of directories and filename
@@ -65,6 +69,7 @@ def build_new_paths(map_dict, num_layers):
             # Drop the .shp, .tif extenson
             source_fname_wo_ext = str(source_fname.split('.')[0])
             # Get old workspace path
+            print lyr[1]
             old_workspace = lyr[1].workspacePath
             # Create dict for building new path
             path_dict = builder.get_path_variables(split_target[split_target.index('W:'): ])
@@ -93,8 +98,8 @@ def build_new_paths(map_dict, num_layers):
 #TODO test that links are repaired using get_link_status in path_getter module
 
 if __name__ == '__main__':
-    # main(r'\\PDX\GIS_Files\0302_Baxter')
+    main(r'W:\0302_Baxter_DUPLICATE\Source_Figures')
     # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Ross_Tract')
     # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Arlington_Landfills\2016_Annual_Report')
-    #main(r'\\PDX\GIS_Files\0302_Baxter_DUPLICATE\Source_Figures\Ross_Tract')
-    main(r'W:\0730_PPS_DUPLICATE\Source_Figures')
+    # main(r'\\PDX\GIS_Files\0302_Baxter_DUPLICATE\Source_Figures\Ross_Tract')
+    # main(r'W:\0730_PPS_DUPLICATE\Source_Figures')

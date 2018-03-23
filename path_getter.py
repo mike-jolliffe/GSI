@@ -59,15 +59,18 @@ class PathGetter(object):
         for lyr in arcpy.mapping.ListLayers(mxd):
             self.num_layers += 1
             # If the layer has a dataSource property and its datasource is a shapefile
-            if lyr.supports("DATASOURCE"): #and lyr.dataSource.endswith('.shp'):
+            if lyr.supports("DATASOURCE") and not lyr.isServiceLayer: #and lyr.dataSource.endswith('.shp'):
                 # Store the map object, layer object, map filepath, and data source filepath
                 lyr_sources.setdefault(filepath, []).append((mxd, lyr, lyr.dataSource))
             elif lyr.isGroupLayer:
                 for member in lyr:
                     # If the layer has a dataSource property and its datasource is a shapefile
-                    if member.supports("DATASOURCE"): #and member.dataSource.endswith('.shp'):
+                    if member.supports("DATASOURCE") and not lyr.isServiceLayer: #and member.dataSource.endswith('.shp'):
                         # Store the map object, layer object, map filepath, and data source filepath
                         lyr_sources.setdefault(filepath, []).append((mxd, member, member.dataSource))
+                    del member
             else:
                 print lyr.name + 'doesn\'t support datasource'
+            del lyr
+        del mxd
         self.source_paths.append(lyr_sources)
