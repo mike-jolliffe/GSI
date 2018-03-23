@@ -12,9 +12,9 @@ class PathGetter(object):
         # Root directory within which to perform all link fixing
         self.root = root
         # Container for map filepaths
-        self.map_paths = []
+        self.mxd_paths = []
         # Layers, map paths, and source paths
-        self.source_paths = []
+        self.source_paths = None
         # Total number of layers
         self.num_layers = 0
 
@@ -32,7 +32,7 @@ class PathGetter(object):
             for file in files:
                 if file.endswith(ftype):
                     f.append(os.path.join(dirpath, file))
-        self.map_paths = f
+        self.mxd_paths = f
 
     def get_link_status(self, f):
         """Checks list of mxds to see if layer source links are broken, writes results to file
@@ -56,6 +56,7 @@ class PathGetter(object):
         mxd = arcpy.mapping.MapDocument(filepath)
         lyr_sources = {}
         # For all layers in a given .mxd
+        self.num_layers = 0
         for lyr in arcpy.mapping.ListLayers(mxd):
             self.num_layers += 1
             # If the layer has a dataSource property and its datasource is a shapefile
@@ -70,7 +71,7 @@ class PathGetter(object):
                         lyr_sources.setdefault(filepath, []).append((mxd, member, member.dataSource))
                     del member
             else:
-                print lyr.name + 'doesn\'t support datasource'
+                print 'Unable to resolve path for ' + lyr.name
             del lyr
         del mxd
-        self.source_paths.append(lyr_sources)
+        self.source_paths = lyr_sources

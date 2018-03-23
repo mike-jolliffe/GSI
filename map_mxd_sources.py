@@ -5,44 +5,27 @@ from path_builder import PathBuilder
 
 def main(root):
     # Get all current map and data source paths, number of layers requiring mods
-    current_paths, num_layers = map_current_paths(root)
-    print 'Repairing links for ' + num_layers + ' layers...'
-    # For each map
-    for map_dict in current_paths:
-        # Replace old datasource locations with new ones
-        build_new_paths(map_dict, num_layers)
-    # Check that replacement worked
-    del current_paths
-    del num_layers
-    #current_paths, num_layers = map_current_paths(root)
-    #print current_paths
-
-def map_current_paths(root):
-    """Generates dictionary of all current map paths, layer paths, and data
-    source paths, and also returns total number of layers to be modified
-    :type root: str
-    :rtype: Dict, str
-    """
     # Instantiate new Getter object
     getter = PathGetter(root)
     # Get all mxds in root directory
     print 'finding all .mxd files...'
     getter.find_files('.mxd')
-    # Get list of all map filepaths
-    mxds = getter.map_paths
     # Store the total count of maps
-    tot_mxds = len(mxds)
+    tot_mxds = len(getter.mxd_paths)
     print str(tot_mxds) + ' mxd files found.'
     print 'Getting current source paths...'
-    mxd_num = 1
+    mxd_num = 0
     # For a given map filepath
-    for mxd in mxds:
+    for mxd in getter.mxd_paths:
+        mxd_num += 1
         # Get the source data paths for map
         getter.get_source_paths(mxd)
-        print 'current paths found for mxd # ' + str(mxd_num) + " of " + str(tot_mxds)
-        mxd_num += 1
-    # Pass back filepaths for all data sources, total number of layers to be changed
-    return getter.source_paths, str(getter.num_layers)
+        print '--------------------------------------------------\n'
+        print 'FIXING PATHS FOR FOR MXD # ' + str(mxd_num) + " OF " + str(tot_mxds)
+        print '\n'
+        print 'Repairing ' + str(getter.num_layers) + ' layers...'
+        print '\n--------------------------------------------------\n'
+        build_new_paths(getter.source_paths, str(getter.num_layers))
 
 def build_new_paths(map_dict, num_layers):
     """Given current source paths, builds new source paths to reflect modified
@@ -55,9 +38,6 @@ def build_new_paths(map_dict, num_layers):
     builder = PathBuilder()
     # For each map
     for mxd_path, lyr_sources_list in map_dict.items():
-        print '........MXD........'
-        print 'rebuilding links for ' + mxd_path
-        print '...................'
         # Grab the map object to be modified
         mxd = lyr_sources_list[0][0]
         # Split the map filepath into list of directories and filename
@@ -69,14 +49,12 @@ def build_new_paths(map_dict, num_layers):
             # Drop the .shp, .tif extenson
             source_fname_wo_ext = str(source_fname.split('.')[0])
             # Get old workspace path
-            print lyr[1]
             old_workspace = lyr[1].workspacePath
             # Create dict for building new path
             path_dict = builder.get_path_variables(split_target[split_target.index('W:'): ])
             # Move shared data sources from Z: into special Data Library folder
             if old_workspace.startswith('Z') or old_workspace.startswith('W:\_Data_Library'):
                 source_path = builder.split_path(old_workspace)[2:]
-                print source_path
                 source_path = '\\'.join(source_path)
                 new_workspace = 'W:\_Data_Library' + '\\' + source_path
             else:
@@ -85,17 +63,16 @@ def build_new_paths(map_dict, num_layers):
             builder.build(lyr[1], old_workspace, new_workspace)
         print 'Saving the mxd...'
         # If you get an error, make sure all other instances of mxd are closed
+        print '-------------------------------------------------------'
         mxd.save()
-        print '-------------------------------'
         del mxd
 
-
-#TODO GAAAAH why isn't the workspacepath being replaced?
-    # https://support.esri.com/en/bugs/nimbus/QlVHLTAwMDA5Njc3OQ==
-
-#TODO keep track of all layers/mxds/source filepaths where links were not successfully repaired
-#TODO keep track of total number of layers repaired / not repaired
-#TODO test that links are repaired using get_link_status in path_getter module
+"""TODO I'm getting runtime errors for large directories, most likely because
+I gather all the map objects and layer objects in memory, then iterate on them,
+fixing each. Definitely should have thought of this during design. I need to fix
+the getter class so it only stores one map object and its layers at a time. Then
+fix builder so it runs for a single map object, rather than a dictionary of all
+the map and layer objects at once."""
 
 if __name__ == '__main__':
     main(r'W:\0302_Baxter_DUPLICATE\Source_Figures')
