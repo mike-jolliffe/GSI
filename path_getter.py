@@ -11,7 +11,7 @@ class PathGetter(object):
     def __init__(self, root):
         # Root directory within which to perform all link fixing
         self.root = root
-        # Paths for all mxds within root
+        # Store the MapDocument object to be modified
         self.map_paths = []
         # Layers, map paths, and source paths
         self.source_paths = []
@@ -60,7 +60,7 @@ class PathGetter(object):
             self.num_layers += 1
             # If the layer has a dataSource property and its datasource is a shapefile
             if lyr.supports("DATASOURCE") and lyr.dataSource.endswith('.shp'):
-                #print lyr.dataSource 
-                # Store the layer object, its filepath, and its source filepath
-                lyr_sources.setdefault(filepath, []).append((lyr, lyr.dataSource))
+                #print lyr.dataSource
+                # Store the map object, layer object, map filepath, and data source filepath
+                lyr_sources.setdefault(filepath, []).append((mxd, lyr, lyr.dataSource))
         self.source_paths.append(lyr_sources)

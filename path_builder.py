@@ -36,7 +36,7 @@ class PathBuilder(object):
         :type source_fname: str
         :rtype: str
         """
-        search_path = '\\\\PDX\GIS_Files' + '\\' + project_name + '\\Data'
+        search_path = 'W:' + '\\' + project_name + '\\Data'
         for dirpath, subdirs, files in os.walk(search_path):
             for file in files:
                 if file == source_fname:
@@ -50,47 +50,12 @@ class PathBuilder(object):
         :rtype: str
         """
         print type(map_layer)
-        name = map_layer.name
         try:
             #print "Input path: " + old_path
             #print "Updated path: " + new_path
-            print 'current data path ' + map_layer.dataSource
+            print 'old data path ' + map_layer.dataSource
             map_layer.findAndReplaceWorkspacePath(old_workspace, new_workspace, False)
-            print 'successfully modified path ' + map_layer.dataSource
+            print 'new data path ' + map_layer.dataSource
         except:
             # If you get an error, make sure all drives are mapped
             raise
-
-
-
-
-# def set_source_path(path):
-#     """Given drive and paths, creates appropriate filepath for new location of
-#     source data
-#     :type path: tuple(string, string)
-#     :rtype: str
-#     """
-#     # Create list of folders and filename from source path
-#     split_src = split_path(path[1])
-#     # Get drive name from path
-#     drive = split_src[0]
-#     # Get shape name from path
-#     shape_name = split_src[-1]
-#     print (split_src, drive, shape_name)
-#     exit()
-
-    # # If drive is Z:
-    # if drive == 'Z':
-    #     # Map to _Data_Library
-    #     return 'PDX\GIS_Files\_Data_Library\\' + shape_name
-    # else:
-    #
-    #
-    #             # Get folder names
-    #             # Build path PDX/GIS_Files/<project_name>/Spatial/<task_name>/<shp_name>
-    #         elif depth == 3:
-    #             pass
-    #             # PDX/GIS_Files/Spatial/<task_name>/<shp_name>
-    #     except:
-    #         # Probably errored b/c .mxd not in Source_Figures, came from elsewhere
-    #         print "File not in source Figures: " + mxd

@@ -4,10 +4,14 @@ from path_builder import PathBuilder
 
 
 def main(root):
+    # arcpy.env.overwriteOutput = 'True'
+    # print arcpy.env.overwriteOutput
     current_paths, num_layers = map_current_paths(root)
     print (current_paths, num_layers)
     for map_dict in current_paths:
         build_new_paths(map_dict, num_layers)
+    current_paths, num_layers = map_current_paths(root)
+    print current_paths
 
 def map_current_paths(root):
     """Generates dictionary of all current map paths, layer paths, and data
@@ -45,37 +49,41 @@ def build_new_paths(map_dict, num_layers):
     # For each mxd dictionary
     for mxd_path, lyr_sources_list in map_dict.items():
         print "rebuilding links for " + mxd_path
-        mxd = arcpy.mapping.MapDocument(mxd_path)
+        #mxd = arcpy.mapping.MapDocument(mxd_path)
+        mxd = lyr_sources_list[0][0]
+        print mxd
         # Split the filepath of the map into a list of directories and a filename
         split_target = builder.split_path(mxd_path)
         for lyr in lyr_sources_list:
-            source_fname = builder.split_path(lyr[1])[-1]
+            source_fname = builder.split_path(lyr[2])[-1]
             # Drop the .shp extenson
             source_fname_wo_ext = str(source_fname.split('.')[0])
             # Get name of featureclass and workspace path
-            featureclass = lyr[0].name
-            old_workspace = lyr[0].workspacePath
+            featureclass = lyr[1].name
+            old_workspace = lyr[1].workspacePath
             # Create dict for building new path
-            path_dict = builder.get_path_variables(split_target[split_target.index('GIS_Files'): ])
-            if lyr[1].startswith('Z'):
-                new_workspace = '\\\\PDX\GIS_Files\_Data_Library'
+            path_dict = builder.get_path_variables(split_target[split_target.index('W:'): ])
+            if lyr[2].startswith('Z'):
+                new_workspace = 'W:\_Data_Library'
             else:
                 new_workspace = builder.match_new_src(path_dict['Project'], source_fname)
                 #new_path = new_path.replace('.shp', '')
-            builder.build(lyr[0], old_workspace, new_workspace)
-            print 'Old file location: ' + old_workspace
-            print 'New file location: ' + new_workspace
-            # make a temporary copy so you can save it. Otherwise, IO error if attempt
-            # to save current mxd
-            print 'Saving the mxd...'
-            print '-------------------------------'
-        tmp_mxd_copy = mxd_path.replace('.mxd', '_NEW6.mxd')
-        print 'New map path: ' + tmp_mxd_copy
-        print 'current map path: ' + mxd.filePath
-        mxd.saveACopy(tmp_mxd_copy)
-        print 'copy saved as ' + tmp_mxd_copy
+            builder.build(lyr[1], old_workspace, new_workspace)
+        print 'Saving the mxd...'
+        mxd.save()
+        print "Still the same?"
+        print (lyr[1].workspacePath, new_workspace)
+        print '-------------------------------'
+        # tmp_mxd_copy = mxd_path.replace('.mxd', '_NEW11.mxd')
+        # print 'New map path: ' + tmp_mxd_copy
+        # print 'current map path: ' + mxd.filePath
+        # mxd.saveACopy(tmp_mxd_copy)
+        # print 'copy saved as ' + tmp_mxd_copy
         # Delete the original mxd, and rename the copy to original name
+        print 'all new data source workspaces'
+        print [lyr[1].workspacePath for lyr in lyr_sources_list]
         del mxd
+    # Check that changes stuck
 
     # os.remove(mxd_path)
     # os.rename(tmp_mxd_copy, mxd_path)
@@ -93,4 +101,4 @@ if __name__ == '__main__':
     # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Ross_Tract')
     # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Arlington_Landfills\2016_Annual_Report')
     #main(r'\\PDX\GIS_Files\0302_Baxter_DUPLICATE\Source_Figures\Ross_Tract')
-    main(r'\\PDX\GIS_Files\0730_PPS_DUPLICATE\Source_Figures')
+    main(r'W:\0730_PPS_DUPLICATE\Source_Figures')
