@@ -11,7 +11,7 @@ class PathGetter(object):
     def __init__(self, root):
         # Root directory within which to perform all link fixing
         self.root = root
-        # Store the MapDocument object to be modified
+        # Container for map filepaths
         self.map_paths = []
         # Layers, map paths, and source paths
         self.source_paths = []
@@ -23,7 +23,7 @@ class PathGetter(object):
         within root
         :type root: str
         :type ftype: str
-        :rtype: List[str]
+        :rtype: None
         """
         # Container for ftype files by full path
         f = []
@@ -49,7 +49,7 @@ class PathGetter(object):
 
     def get_source_paths(self, filepath):
         """Returns a dictionary. Key is current mxd filepath, vals are tuples of
-        map layer objects and their source paths
+        map object, layer objects and their source paths
         :type filepath: str
         :rtype: None
         """
@@ -59,8 +59,15 @@ class PathGetter(object):
         for lyr in arcpy.mapping.ListLayers(mxd):
             self.num_layers += 1
             # If the layer has a dataSource property and its datasource is a shapefile
-            if lyr.supports("DATASOURCE") and lyr.dataSource.endswith('.shp'):
-                #print lyr.dataSource
+            if lyr.supports("DATASOURCE"): #and lyr.dataSource.endswith('.shp'):
                 # Store the map object, layer object, map filepath, and data source filepath
                 lyr_sources.setdefault(filepath, []).append((mxd, lyr, lyr.dataSource))
+            elif lyr.isGroupLayer:
+                for member in lyr:
+                    # If the layer has a dataSource property and its datasource is a shapefile
+                    if member.supports("DATASOURCE"): #and member.dataSource.endswith('.shp'):
+                        # Store the map object, layer object, map filepath, and data source filepath
+                        lyr_sources.setdefault(filepath, []).append((mxd, member, member.dataSource))
+            else:
+                print lyr.name + 'doesn\'t support datasource'
         self.source_paths.append(lyr_sources)

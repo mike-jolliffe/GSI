@@ -4,12 +4,13 @@ from path_builder import PathBuilder
 
 
 def main(root):
-    # arcpy.env.overwriteOutput = 'True'
-    # print arcpy.env.overwriteOutput
+    # Get all current map and data source paths, number of layers requiring mods
     current_paths, num_layers = map_current_paths(root)
-    print (current_paths, num_layers)
+    # For each map
     for map_dict in current_paths:
+        # Replace old datasource locations with new ones
         build_new_paths(map_dict, num_layers)
+    # Check that replacement worked
     current_paths, num_layers = map_current_paths(root)
     print current_paths
 
@@ -21,24 +22,28 @@ def map_current_paths(root):
     """
     # Instantiate new Getter object
     getter = PathGetter(root)
-    # Get all mxds in root
+    # Get all mxds in root directory
     print 'finding all .mxd files...'
     getter.find_files('.mxd')
+    # Get list of all map filepaths
     mxds = getter.map_paths
+    # Store the total count of maps
     tot_mxds = len(mxds)
     print str(tot_mxds) + ' mxd files found.'
     print 'Getting current source paths...'
     mxd_num = 1
+    # For a given map filepath
     for mxd in mxds:
-        # Get the source data paths for each mxd
+        # Get the source data paths for map
         getter.get_source_paths(mxd)
         print 'current paths found for mxd # ' + str(mxd_num) + " of " + str(tot_mxds)
         mxd_num += 1
-        #print getter.source_paths
+    # Pass back filepaths for all data sources, total number of layers to be changed
     return getter.source_paths, str(getter.num_layers)
 
 def build_new_paths(map_dict, num_layers):
-    """Given current paths, builds new paths to reflect modified directory structure
+    """Given current source paths, builds new source paths to reflect modified
+    directory structure
     :type map_dict: Dict
     :type num_layers: str
     :rtype: None
@@ -46,47 +51,38 @@ def build_new_paths(map_dict, num_layers):
     # Instantiate new PathBuilder object that will consume getter.source_paths list
     print 'Repairing links for ' + num_layers + ' layers...'
     builder = PathBuilder()
-    # For each mxd dictionary
+    # For each map
     for mxd_path, lyr_sources_list in map_dict.items():
         print "rebuilding links for " + mxd_path
-        #mxd = arcpy.mapping.MapDocument(mxd_path)
+        # Grab the map object to be modified
         mxd = lyr_sources_list[0][0]
-        print mxd
-        # Split the filepath of the map into a list of directories and a filename
+        # Split the map filepath into list of directories and filename
         split_target = builder.split_path(mxd_path)
+        # for each (map object, layer object, old layer source filepath) tuple
         for lyr in lyr_sources_list:
+            # Grab the filename
             source_fname = builder.split_path(lyr[2])[-1]
-            # Drop the .shp extenson
+            # Drop the .shp, .tif extenson
             source_fname_wo_ext = str(source_fname.split('.')[0])
-            # Get name of featureclass and workspace path
-            featureclass = lyr[1].name
+            # Get old workspace path
             old_workspace = lyr[1].workspacePath
             # Create dict for building new path
             path_dict = builder.get_path_variables(split_target[split_target.index('W:'): ])
-            if lyr[2].startswith('Z'):
-                new_workspace = 'W:\_Data_Library'
+            # Move shared data sources from Z: into special Data Library folder
+            if old_workspace.startswith('Z') or old_workspace.startswith('W:\_Data_Library'):
+                source_path = builder.split_path(old_workspace)[2:]
+                print source_path
+                source_path = '\\'.join(source_path)
+                new_workspace = 'W:\_Data_Library' + '\\' + source_path
             else:
+                # All other sources go into their respective project folders
                 new_workspace = builder.match_new_src(path_dict['Project'], source_fname)
-                #new_path = new_path.replace('.shp', '')
             builder.build(lyr[1], old_workspace, new_workspace)
         print 'Saving the mxd...'
+        # If you get an error, make sure all other instances of mxd are closed
         mxd.save()
-        print "Still the same?"
-        print (lyr[1].workspacePath, new_workspace)
         print '-------------------------------'
-        # tmp_mxd_copy = mxd_path.replace('.mxd', '_NEW11.mxd')
-        # print 'New map path: ' + tmp_mxd_copy
-        # print 'current map path: ' + mxd.filePath
-        # mxd.saveACopy(tmp_mxd_copy)
-        # print 'copy saved as ' + tmp_mxd_copy
-        # Delete the original mxd, and rename the copy to original name
-        print 'all new data source workspaces'
-        print [lyr[1].workspacePath for lyr in lyr_sources_list]
         del mxd
-    # Check that changes stuck
-
-    # os.remove(mxd_path)
-    # os.rename(tmp_mxd_copy, mxd_path)
 
 
 #TODO GAAAAH why isn't the workspacepath being replaced?

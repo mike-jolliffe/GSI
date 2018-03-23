@@ -31,7 +31,7 @@ class PathBuilder(object):
         return dir_dict
 
     def match_new_src(self, project_name, source_fname):
-        """Returns filepath of source file in new path that matches source_fname
+        """Returns new filepath for location where filename matches source
         :type project_name: str
         :type source_fname: str
         :rtype: str
@@ -49,10 +49,7 @@ class PathBuilder(object):
         :type new_path: str
         :rtype: str
         """
-        print type(map_layer)
         try:
-            #print "Input path: " + old_path
-            #print "Updated path: " + new_path
             print 'old data path ' + map_layer.dataSource
             map_layer.findAndReplaceWorkspacePath(old_workspace, new_workspace, False)
             print 'new data path ' + map_layer.dataSource
