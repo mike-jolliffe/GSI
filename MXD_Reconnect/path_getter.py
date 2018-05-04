@@ -29,7 +29,6 @@ class PathGetter(object):
         f = []
         # Recursively search from root, grabbing all files of given ftype
         for dirpath, subdirs, files in os.walk(self.root):
-            print (dirpath, subdirs)
             for file in files:
                 if file.endswith(ftype):
                     f.append(os.path.join(dirpath, file))

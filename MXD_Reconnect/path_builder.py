@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 # Add arcpy and dependencies to system path
 sys.path.insert(0, r'C:\Program Files (x86)\ArcGIS\Desktop10.3\arcpy')
@@ -8,6 +9,10 @@ import arcpy
 
 
 class PathBuilder(object):
+
+    def __init__(self):
+        self.missing_sources = {}
+        self.all_source_paths = {}
 
     def split_path(self, fpath):
         """Splits filepath into list of directories and file name
@@ -30,25 +35,39 @@ class PathBuilder(object):
         dir_dict['Project'] = split_fpath[1]
         return dir_dict
 
+    def get_mapped_sources(self):
+        """Unpickles dictionary of the form {project: {filename: path to file}}
+        for quickly getting matching source filepaths instead of os.walk each time
+        :return: Modifies the instance variable
+        :rtype: dict
+        """
+        try:
+            with open(r'C:\Users\MJolliffe\Documents\GitHub\GSI\MXD_Reconnect\all_source_paths_pickle', 'rb') as fp:
+                self.all_source_paths = pickle.load(fp)
+        except:
+            raise 'Something went wrong loading the filepaths from Pickle'
+
     def match_new_src(self, project_name, source_fname):
         """Returns new filepath for location where filename matches source
         :type project_name: str
         :type source_fname: str
-        :rtype: str
+        :rtype: str or None
         """
-        search_path = 'W:' + '\\' + project_name + '\\Data'
-        for dirpath, subdirs, files in os.walk(search_path):
-            for file in files:
-                if file == source_fname:
-                    return dirpath
-        # Couldn't find it
-        return None
+
+        try:
+            dirpath = self.all_source_paths[project_name][source_fname]
+            if dirpath:
+                return dirpath
+            else:
+                return None
+        except KeyError:
+            return None
 
     def build(self, map_layer, old_workspace, new_workspace):
         """Fixes filepath for given map layer
         :type map_layer: <map layer>
         :type new_path: str
-        :rtype: str
+        :rtype: Doesn't return anything
         """
         try:
             print 'old data path ' + map_layer.dataSource

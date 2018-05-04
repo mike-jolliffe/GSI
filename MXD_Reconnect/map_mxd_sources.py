@@ -3,7 +3,7 @@ from path_getter import PathGetter
 from path_builder import PathBuilder
 
 
-def main(root):
+def main(root=None):
     # Get all current map and data source paths, number of layers requiring mods
     # Instantiate new Getter object
     getter = PathGetter(root)
@@ -22,6 +22,7 @@ def main(root):
         getter.get_source_paths(mxd)
         print '--------------------------------------------------\n'
         print 'FIXING PATHS FOR FOR MXD # ' + str(mxd_num) + " OF " + str(tot_mxds)
+        print 'FILE NAME ' + mxd
         print '\n'
         print 'Repairing ' + str(getter.num_layers) + ' layers...'
         print '\n--------------------------------------------------\n'
@@ -36,6 +37,8 @@ def build_new_paths(map_dict, num_layers):
     """
     # Instantiate new PathBuilder object that will consume getter.source_paths list
     builder = PathBuilder()
+    # Grab stored dict of filepaths
+    builder.get_mapped_sources()
     # For each map
     for mxd_path, lyr_sources_list in map_dict.items():
         # Grab the map object to be modified
@@ -59,12 +62,12 @@ def build_new_paths(map_dict, num_layers):
                 print("Supports DataSource?", lyr[1].supports("DATASOURCE"))
                 print lyr[1].longName
                 exit()
-            path_dict = builder.get_path_variables(split_target[split_target.index('W:'): ])
+            path_dict = builder.get_path_variables(split_target[split_target.index('Y:'): ])
             # Move shared data sources from Z: into special Data Library folder
-            if old_workspace.startswith('Z') or old_workspace.startswith('W:\_Data_Library'):
+            if old_workspace.startswith('Z') or old_workspace.startswith('Y:\_Data_Library'):
                 source_path = builder.split_path(old_workspace)[2:]
                 source_path = '\\'.join(source_path)
-                new_workspace = 'W:\_Data_Library' + '\\' + source_path
+                new_workspace = 'Y:\_Data_Library' + '\\' + source_path
             else:
                 # All other sources go into their respective project folders
                 new_workspace = builder.match_new_src(path_dict['Project'], source_fname)
@@ -75,19 +78,23 @@ def build_new_paths(map_dict, num_layers):
         print 'Saving the mxd...'
         # If you get an error, make sure all other instances of mxd are closed
         print '-------------------------------------------------------'
-        mxd.save()
-        del mxd
+        try:
+            mxd.save()
+            del mxd
+        except IOError:
+            log_error(mxd.filePath)
+            print "Unable to save mxd " + mxd.title
 
-"""TODO I'm getting runtime errors for large directories, most likely because
-I gather all the map objects and layer objects in memory, then iterate on them,
-fixing each. Definitely should have thought of this during design. I need to fix
-the getter class so it only stores one map object and its layers at a time. Then
-fix builder so it runs for a single map object, rather than a dictionary of all
-the map and layer objects at once."""
+def log_error(filepath):
+    with open ('unsaved_maps', 'w+') as error_log:
+        error_log.write(filepath)
+
 
 if __name__ == '__main__':
-    # main(r'W:\0152_Gresham - Copy\Source_Figures')
+    # main(r'Y:\0152_Gresham - Copy\Source_Figures')
     # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Ross_Tract')
     # main(r'\\PDX\GIS_Files\0302_Baxter\Source_Figures\Arlington_Landfills\2016_Annual_Report')
     # main(r'\\PDX\GIS_Files\0302_Baxter_DUPLICATE\Source_Figures\Ross_Tract')
-    main(r'W:\0730_PPS_DUPLICATE\Source_Figures')
+    # main(r'Y:\0110_BES_Copy')
+    # main(r'Y:\0110_BES_Copy\Source_Figures\004_CERCLA')
+    main(r'Y:\0110_BES_Copy\Source_Figures\005_SC')
