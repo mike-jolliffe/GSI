@@ -42,7 +42,7 @@ class PathBuilder(object):
         :rtype: dict
         """
         try:
-            with open(r'C:\Users\MJolliffe\Documents\GitHub\GSI\MXD_Reconnect\all_source_paths_pickle', 'rb') as fp:
+            with open(r'C:\Users\MJolliffe\Documents\GitHub\GSI\MXD_Reconnect\all_source_paths_pickle2', 'rb') as fp:
                 self.all_source_paths = pickle.load(fp)
         except:
             raise 'Something went wrong loading the filepaths from Pickle'
